@@ -13,8 +13,17 @@
 зайти вторым ssh (вторая сессия)  
 запустить везде psql из под пользователя postgres
 <pre><code>
-1 - \set PROMPT1 %/-s1%R%x%#
-2 - \set PROMPT1 %/-s2%R%x%#
+postgres=#\set PROMPT1 %/-s1%R%x%#
+postgres-s1=#create database task02;
+CREATE DATABASE
+postgres-s1=#\c task02 
+You are now connected to database "task02" as user "postgres".
+task02-s1=#
+
+postgres=#\set PROMPT1 %/-s2%R%x%#
+postgres-s2=#\c task02 
+You are now connected to database "task02" as user "postgres".
+task02-s2=#
 </code></pre>
 выключить auto commit
 <pre><code>
