@@ -11,52 +11,52 @@
 зайти удаленным ssh (первая сессия), не забывайте про ssh-add  
 поставить PostgreSQL  
 зайти вторым ssh (вторая сессия)  
-запустить везде psql из под пользователя postgres  
+запустить везде psql из под пользователя postgres
 <pre><code>
 1 - \set PROMPT1 %/-s1%R%x%#
 2 - \set PROMPT1 %/-s2%R%x%#
 </code></pre>
-выключить auto commit  
+выключить auto commit
 <pre><code>
 task02-s1=#\set AUTOCOMMIT off
 task02-s2=#\set AUTOCOMMIT off
 </code></pre>
-сделать в первой сессии новую таблицу и наполнить ее данными create table persons(id serial, first_name text, second_name text); insert into persons(first_name, second_name) values('ivan', 'ivanov'); insert into persons(first_name, second_name) values('petr', 'petrov'); commit;  
+сделать в первой сессии новую таблицу и наполнить ее данными create table persons(id serial, first_name text, second_name text); insert into persons(first_name, second_name) values('ivan', 'ivanov'); insert into persons(first_name, second_name) values('petr', 'petrov'); commit;
 <pre><code>
 task02-s1=#create table persons(id serial, first_name text, second_name text);
-CREATE TABLE  
-task02-s1=*#insert into persons(first_name, second_name) values('ivan', 'ivanov'), ('petr', 'petrov');  
-INSERT 0 2  
-task02-s1=*#commit;  
-COMMIT  
+CREATE TABLE
+task02-s1=*#insert into persons(first_name, second_name) values('ivan', 'ivanov'), ('petr', 'petrov');
+INSERT 0 2
+task02-s1=*#commit;
+COMMIT
 </code></pre>
-посмотреть текущий уровень изоляции: show transaction isolation level  
+посмотреть текущий уровень изоляции: show transaction isolation level
 <pre><code>
 task02-s1=#show transaction isolation level;
- transaction_isolation  
------------------------  
- read committed  
-(1 row)  
+ transaction_isolation
+-----------------------
+ read committed
+(1 row)
 
-task02-s2=#show transaction isolation level;  
- transaction_isolation  
------------------------  
- read committed  
-(1 row)  
+task02-s2=#show transaction isolation level;
+ transaction_isolation
+-----------------------
+ read committed
+(1 row)
 </code></pre>
-начать новую транзакцию в обоих сессиях с дефолтным (не меняя) уровнем изоляции  
+начать новую транзакцию в обоих сессиях с дефолтным (не меняя) уровнем изоляции
 <pre><code>
 task02-s1=#begin;
 BEGIN
 task02-s2=#begin;
 BEGIN
 </code></pre>
-в первой сессии добавить новую запись insert into persons(first_name, second_name) values('sergey', 'sergeev');  
+в первой сессии добавить новую запись insert into persons(first_name, second_name) values('sergey', 'sergeev');
 <pre><code>
 task02-s1=*#insert into persons(first_name, second_name) values('sergey', 'sergeev');
 INSERT 0 1
 </code></pre>
-сделать select * from persons во второй сессии  
+сделать select * from persons во второй сессии
 <pre><code>
 task02-s2=*#select * from persons;
  id | first_name | second_name 
@@ -67,12 +67,13 @@ task02-s2=*#select * from persons;
 </code></pre>
 видите ли вы новую запись и если да то почему?  
 Нет..  
-завершить первую транзакцию - commit;  
+
+завершить первую транзакцию - commit;
 <pre><code>
 task02-s1=*#commit;
 COMMIT
 </code></pre>
-сделать select * from persons во второй сессии  
+сделать select * from persons во второй сессии
 <pre><code>
 task02-s2=*#select * from persons;
  id | first_name | second_name 
@@ -84,24 +85,25 @@ task02-s2=*#select * from persons;
 </code></pre>
 видите ли вы новую запись и если да то почему?  
 Да..  
-завершите транзакцию во второй сессии  
+
+завершите транзакцию во второй сессии
 <pre><code>
 task02-s2=*#commit;
 COMMIT
 </code></pre>
-начать новые но уже repeatable read транзации - set transaction isolation level repeatable read;  
+начать новые но уже repeatable read транзации - set transaction isolation level repeatable read;
 <pre><code>
 task02-s1=#set transaction isolation level repeatable read;
 SET
 task02-s2=#set transaction isolation level repeatable read;
 SET
 </code></pre>
-в первой сессии добавить новую запись insert into persons(first_name, second_name) values('sveta', 'svetova');  
+в первой сессии добавить новую запись insert into persons(first_name, second_name) values('sveta', 'svetova');
 <pre><code>
 task02-s1=*#insert into persons(first_name, second_name) values('sveta', 'svetova');
 INSERT 0 1
 </code></pre>
-сделать select * from persons во второй сессии  
+сделать select * from persons во второй сессии
 <pre><code>
 task02-s2=*#select * from persons;
  id | first_name | second_name 
@@ -113,12 +115,13 @@ task02-s2=*#select * from persons;
 </code></pre>
 видите ли вы новую запись и если да то почему?  
 Нет..  
-завершить первую транзакцию - commit;  
+
+завершить первую транзакцию - commit;
 <pre><code>
 task02-s1=*#commit;
 COMMIT
 </code></pre>
-сделать select * from persons во второй сессии  
+сделать select * from persons во второй сессии
 <pre><code>
 task02-s2=*#select * from persons;
  id | first_name | second_name 
@@ -130,12 +133,13 @@ task02-s2=*#select * from persons;
 </code></pre>
 видите ли вы новую запись и если да то почему?  
 Нет..  
-завершить вторую транзакцию  
+
+завершить вторую транзакцию
 <pre><code>
 task02-s2=*#commit;
 COMMIT
 </code></pre>
-сделать select * from persons во второй сессии  
+сделать select * from persons во второй сессии
 <pre><code>
 task02-s2=#select * from persons;
  id | first_name | second_name 
