@@ -11,7 +11,8 @@
 зайти удаленным ssh (первая сессия), не забывайте про ssh-add  
 поставить PostgreSQL  
 зайти вторым ssh (вторая сессия)  
-запустить везде psql из под пользователя postgres
+
+запустить везде psql из под пользователя postgres. Установил разные PROMPT1 для сеансов (s1 и s2) и создал отдельную БД для удобства.
 <pre><code>
 postgres=#\set PROMPT1 %/-s1%R%x%#
 postgres-s1=#create database task02;
@@ -25,6 +26,7 @@ postgres-s2=#\c task02
 You are now connected to database "task02" as user "postgres".
 task02-s2=#
 </code></pre>
+
 выключить auto commit
 <pre><code>
 task02-s1=#\set AUTOCOMMIT off
@@ -75,7 +77,7 @@ task02-s2=*#select * from persons;
 (2 rows)
 </code></pre>
 видите ли вы новую запись и если да то почему?  
-Нет..  
+Нет, при уровне изоляции read committed видны только те строки, которые были зафиксированы до начала выполения select..  
 
 завершить первую транзакцию - commit;
 <pre><code>
@@ -93,7 +95,7 @@ task02-s2=*#select * from persons;
 (3 rows)
 </code></pre>
 видите ли вы новую запись и если да то почему?  
-Да..  
+Да, так как транзакция в первом сеансе были зафиксирована до начала выполения select во втором сеансе.  
 
 завершите транзакцию во второй сессии
 <pre><code>
@@ -102,10 +104,10 @@ COMMIT
 </code></pre>
 начать новые но уже repeatable read транзации - set transaction isolation level repeatable read;
 <pre><code>
-task02-s1=#set transaction isolation level repeatable read;
-SET
-task02-s2=#set transaction isolation level repeatable read;
-SET
+task02-s1=#start transaction isolation level repeatable read;
+START TRANSACTION
+task02-s2=#start transaction isolation level repeatable read;
+START TRANSACTION
 </code></pre>
 в первой сессии добавить новую запись insert into persons(first_name, second_name) values('sveta', 'svetova');
 <pre><code>
@@ -123,7 +125,7 @@ task02-s2=*#select * from persons;
 (3 rows)
 </code></pre>
 видите ли вы новую запись и если да то почему?  
-Нет..  
+Нет, при уровне изоляции видны repeatable read видны только строки, которые были зафиксированы перед первым запросом к данным, выполненным во второй транзакции.  
 
 завершить первую транзакцию - commit;
 <pre><code>
@@ -141,7 +143,7 @@ task02-s2=*#select * from persons;
 (3 rows)
 </code></pre>
 видите ли вы новую запись и если да то почему?  
-Нет..  
+Нет, транзакция в первом сеансе была зафиксирована позже первого запроса к данным, выполненного во второй транзакции.  
 
 завершить вторую транзакцию
 <pre><code>
@@ -160,6 +162,4 @@ task02-s2=#select * from persons;
 (4 rows)
 </code></pre>
 видите ли вы новую запись и если да то почему?  
-Да..  
-
-остановите виртуальную машину но не удаляйте ее  
+Да, так как текущий (по умолчанию) уровень изоляции read committed - видны строки, которые были зафиксированы до начала выполения select..  
