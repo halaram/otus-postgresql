@@ -73,13 +73,13 @@ sda      8:0    0   20G  0 disk
 [root@otus02 pgsql]# systemctl start postgresql-14
 Job for postgresql-14.service failed because the control process exited with error code. See "systemctl status postgresql-14.service" and "journalctl -xe" for details.
 ```
-напишите получилось или нет и почему
-    В логах видно, что путь, куда указывает переменная в systemd юните postgresql-14 PGDATA=/var/lib/pgsql/14/data/ не существует
-    Oct 13 16:57:51 otus02 postgresql-14-check-db-dir: "/var/lib/pgsql/14/data/" is missing or empty.
-    Oct 13 16:57:51 otus02 postgresql-14-check-db-dir: Use "/usr/pgsql-14/bin/postgresql-14-setup initdb" to initialize the database cluster.
+напишите получилось или нет и почему   
+    В логах видно, что путь, куда указывает переменная в systemd юните postgresql-14 PGDATA=/var/lib/pgsql/14/data/ не существует   
+    Oct 13 16:57:51 otus02 postgresql-14-check-db-dir: "/var/lib/pgsql/14/data/" is missing or empty.   
+    Oct 13 16:57:51 otus02 postgresql-14-check-db-dir: Use "/usr/pgsql-14/bin/postgresql-14-setup initdb" to initialize the database cluster.   
 
 задание: найти конфигурационный параметр в файлах раположенных в /etc/postgresql/10/main который надо поменять и поменяйте его
-напишите что и почему поменяли
+напишите что и почему поменяли   
     В rhel-centos рекомендованным методом изменения PGDATA=/mnt/data/14/data/ является override systemd юнита:
 ```console
 [root@otus02 pgsql]# systemctl edit postgresql-14
@@ -97,7 +97,7 @@ Environment=PGDATA=/mnt/data/14/data/
            └─override.conf
    Active: active (running) since Wed 2021-10-13 17:10:34 UTC; 4s ago
 ```
-напишите получилось или нет и почему
+напишите получилось или нет и почему   
     Postgres нормально запустился с переменной PGDATA=/mnt/data/14/data/
 зайдите через через psql и проверьте содержимое ранее созданной таблицы
 ```console
