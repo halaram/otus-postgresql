@@ -47,7 +47,7 @@ NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
 sda      8:0    0   20G  0 disk 
 ├─sda1   8:1    0  200M  0 part /boot/efi
 └─sda2   8:2    0 19.8G  0 part /
-<b>sdb      8:16   0   10G  0 disk</b>
+sdb      8:16   0   10G  0 disk
 ```
 проинициализируйте диск согласно инструкции и подмонтировать файловую систему, только не забывайте менять имя диска на актуальное, в вашем случае это скорее всего будет /dev/sdb - https://www.digitalocean.com/community/tutorials/how-to-partition-and-format-storage-devices-in-linux
 ```console
@@ -74,13 +74,15 @@ sda      8:0    0   20G  0 disk
 Job for postgresql-14.service failed because the control process exited with error code. See "systemctl status postgresql-14.service" and "journalctl -xe" for details.
 ```
 напишите получилось или нет и почему   
-    В логах видно, что путь, куда указывает переменная в systemd юните postgresql-14 PGDATA=/var/lib/pgsql/14/data/ не существует   
-    Oct 13 16:57:51 otus02 postgresql-14-check-db-dir: "/var/lib/pgsql/14/data/" is missing or empty.   
-    Oct 13 16:57:51 otus02 postgresql-14-check-db-dir: Use "/usr/pgsql-14/bin/postgresql-14-setup initdb" to initialize the database cluster.   
+<b>В логах видно, что путь, куда указывает переменная в systemd юните postgresql-14 PGDATA=/var/lib/pgsql/14/data/ не существует</b>   
+<pre><code>
+Oct 13 16:57:51 otus02 postgresql-14-check-db-dir: "/var/lib/pgsql/14/data/" is missing or empty.   
+Oct 13 16:57:51 otus02 postgresql-14-check-db-dir: Use "/usr/pgsql-14/bin/postgresql-14-setup initdb" to initialize the database cluster.   
+</code></pre>
 
 задание: найти конфигурационный параметр в файлах раположенных в /etc/postgresql/10/main который надо поменять и поменяйте его
 напишите что и почему поменяли   
-    В rhel-centos рекомендованным методом изменения PGDATA=/mnt/data/14/data/ является override systemd юнита:
+<b>В rhel-centos рекомендованным методом изменения PGDATA=/mnt/data/14/data/ является override systemd юнита:</b>
 ```console
 [root@otus02 pgsql]# systemctl edit postgresql-14
 [root@otus02 pgsql]# cat /etc/systemd/system/postgresql-14.service.d/override.conf 
@@ -98,7 +100,8 @@ Environment=PGDATA=/mnt/data/14/data/
    Active: active (running) since Wed 2021-10-13 17:10:34 UTC; 4s ago
 ```
 напишите получилось или нет и почему   
-    Postgres нормально запустился с переменной PGDATA=/mnt/data/14/data/
+<b>Postgres нормально запустился с переменной PGDATA=/mnt/data/14/data/<b>   
+
 зайдите через через psql и проверьте содержимое ранее созданной таблицы
 ```console
 postgres=# \c task03
