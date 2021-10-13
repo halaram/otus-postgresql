@@ -100,7 +100,7 @@ Environment=PGDATA=/mnt/data/14/data/
    Active: active (running) since Wed 2021-10-13 17:10:34 UTC; 4s ago
 ```
 напишите получилось или нет и почему   
-<b>Postgres нормально запустился с переменной PGDATA=/mnt/data/14/data/<b>   
+<b>Postgres нормально запустился с переменной PGDATA=/mnt/data/14/data/</b>   
 
 зайдите через через psql и проверьте содержимое ранее созданной таблицы
 ```console
