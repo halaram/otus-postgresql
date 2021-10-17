@@ -54,7 +54,8 @@ INSERT 0 3
 task04=# select * from task04;
  k | v 
 ---+---
- 1 | a 2 | b
+ 1 | a
+ 2 | b
  3 | c
 (3 rows)
 ```
