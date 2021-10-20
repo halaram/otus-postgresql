@@ -6,6 +6,8 @@
 создание роли для чтения данных из созданной схемы созданной базы данных  
 создание роли для чтения и записи из созданной схемы созданной базы данных  
 
+<b>Имя проекта - postgres2021-2147483647</b>
+
 1 создайте новый кластер PostgresSQL 13 (на выбор - GCE, CloudSQL)
 ```console
 gcloud compute instances create otus05...
@@ -20,7 +22,8 @@ gcloud compute instances create otus05...
 psql (14.0)
 Type "help" for help.
 
-postgres=#
+postgres=# \conninfo 
+You are connected to database "postgres" as user "postgres" via socket in "/var/run/postgresql" at port "5432".
 ```
 3 создайте новую базу данных testdb
 ```console
