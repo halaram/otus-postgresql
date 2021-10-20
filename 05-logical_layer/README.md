@@ -176,7 +176,7 @@ testdb=> select * from testnm.t1;
 
 ```
 32 получилось?  
-<b>Да.</b>
+<b>Да.</b>  
 33 ура!  
 34 теперь попробуйте выполнить команду create table t2(c1 integer); insert into t2 values (2);
 ```console
