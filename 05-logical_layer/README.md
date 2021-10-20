@@ -37,19 +37,27 @@ You are now connected to database "testdb" as user "postgres".
 ```
 5 создайте новую схему testnm
 ```console
-
+testdb=# create schema testnm;
+CREATE SCHEMA
 ```
 6 создайте новую таблицу t1 с одной колонкой c1 типа integer
 ```console
+testdb=# create table testnm.t1 (c1 int);
+CREATE TABLE
 ```
 7 вставьте строку со значением c1=1
 ```console
+testdb=# insert into testnm.t1 values (1);
+INSERT 0 1
 ```
 8 создайте новую роль readonly
 ```console
+testdb=# create role readonly;
+CREATE ROLE
 ```
 9 дайте новой роли право на подключение к базе данных testdb
 ```console
+
 ```
 10 дайте новой роли право на использование схемы testnm
 ```console
