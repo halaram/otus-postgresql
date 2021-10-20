@@ -42,12 +42,12 @@ CREATE SCHEMA
 ```
 6 создайте новую таблицу t1 с одной колонкой c1 типа integer
 ```console
-testdb=# create table testnm.t1 (c1 int);
+testdb=# create table t1 (c1 int);
 CREATE TABLE
 ```
 7 вставьте строку со значением c1=1
 ```console
-testdb=# insert into testnm.t1 values (1);
+testdb=# insert into t1 values (1);
 INSERT 0 1
 ```
 8 создайте новую роль readonly
@@ -57,39 +57,64 @@ CREATE ROLE
 ```
 9 дайте новой роли право на подключение к базе данных testdb
 ```console
-
+testdb=# grant connect on database testdb to readonly;
+GRANT
 ```
 10 дайте новой роли право на использование схемы testnm
 ```console
+testdb=# grant usage on schema testnm to readonly;
+GRANT
 ```
 11 дайте новой роли право на select для всех таблиц схемы testnm
 ```console
+testdb=# grant select on all tables in schema testnm to readonly;
+GRANT
 ```
 12 создайте пользователя testread с паролем test123
 ```console
+testdb=# create user testread with password 'test123';
+CREATE ROLE
 ```
 13 дайте роль readonly пользователю testread
 ```console
+testdb=# grant readonly to testread;
+GRANT ROLE
 ```
 14 зайдите под пользователем testread в базу данных testdb
 ```console
+testdb=# \c 'user=testread dbname=testdb'
+You are now connected to database "testdb" as user "testread".
 ```
 15 сделайте select * from t1;
 ```console
+testdb=> select * from t1;
+ERROR:  permission denied for table t1
 ```
 16 получилось? (могло если вы делали сами не по шпаргалке и не упустили один существенный момент про который позже)  
+<b>Нет.</b?
 
 17 напишите что именно произошло в тексте домашнего задания  
+<b>У пользователя testread нет прав на чтение таблицы t1.</b?
 
 18 у вас есть идеи почему? ведь права то дали?  
+<b>Права были выданы на select всех таблиц в схеме testnm. Таблица t1 находится в схеме public, владелец postgres.</b>
 
 19 посмотрите на список таблиц
 ```console
+testdb=> \dt
+        List of relations
+ Schema | Name | Type  |  Owner   
+--------+------+-------+----------
+ public | t1   | table | postgres
+(1 row)
 ```
 20 подсказка в шпаргалке под пунктом 20  
 21 а почему так получилось с таблицей (если делали сами и без шпаргалки то может у вас все нормально)  
+<b>В переменой search_path по умолчанию значение '"$user", public'. Схемы postgres не существует, таблица создалась в public.</b>
 22 вернитесь в базу данных testdb под пользователем postgres
 ```console
+testdb=> \c 'user=postgres dbname=testdb'
+You are now connected to database "testdb" as user "postgres".
 ```
 23 удалите таблицу t1
 ```console
