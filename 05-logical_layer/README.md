@@ -8,18 +8,33 @@
 
 1 создайте новый кластер PostgresSQL 13 (на выбор - GCE, CloudSQL)
 ```console
+gcloud compute instances create otus05...
+[root@otus05 ~]# yum install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+[root@otus05 ~]# yum install -y postgresql14-server
+[root@otus05 ~]# /usr/pgsql-14/bin/postgresql-14-setup initdb
+[root@otus05 ~]# systemctl enable --now postgresql-14
 ```
 2 зайдите в созданный кластер под пользователем postgres
 ```console
+-bash-4.2$ psql 
+psql (14.0)
+Type "help" for help.
+
+postgres=#
 ```
 3 создайте новую базу данных testdb
 ```console
+postgres=# create database testdb;
+CREATE DATABASE
 ```
 4 зайдите в созданную базу данных под пользователем postgres
 ```console
+postgres=# \c testdb 
+You are now connected to database "testdb" as user "postgres".
 ```
 5 создайте новую схему testnm
 ```console
+
 ```
 6 создайте новую таблицу t1 с одной колонкой c1 типа integer
 ```console
