@@ -32,7 +32,7 @@ effective_io_concurrency = 2
 work_mem = 6553kB
 min_wal_size = 4GB
 max_wal_size = 16GB
-</code></pre
+</code></pre>
 зайти под пользователем postgres - sudo su postgres
 выполнить pgbench -i postgres
 ```console
