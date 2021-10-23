@@ -15,6 +15,18 @@
 ```
 применить параметры настройки PostgreSQL из прикрепленного к материалам занятия файла
 ```console
+max_connections = 40
+shared_buffers = 1GB
+effective_cache_size = 3GB
+maintenance_work_mem = 512MB
+checkpoint_completion_target = 0.9
+wal_buffers = 16MB
+default_statistics_target = 500
+random_page_cost = 4
+effective_io_concurrency = 2
+work_mem = 6553kB
+min_wal_size = 4GB
+max_wal_size = 16GB
 ```
 зайти под пользователем postgres - sudo su postgres
 ```console
@@ -28,6 +40,14 @@
 дать отработать до конца
 дальше настроить autovacuum максимально эффективно
 ```console
+autovacuum_max_workers = 4
+autovacuum_naptime = 1s
+autovacuum_vacuum_threshold = 50
+autovacuum_analyze_threshold = 5
+autovacuum_vacuum_scale_factor = 0.05
+autovacuum_analyze_scale_factor = 0.01
+autovacuum_vacuum_cost_delay = 1ms
+autovacuum_vacuum_cost_limit = 500
 ```
 построить график по получившимся значениям  
 так чтобы получить максимально ровное значение tps
