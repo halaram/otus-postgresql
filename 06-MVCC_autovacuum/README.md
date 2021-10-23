@@ -9,9 +9,14 @@
 
 создать GCE инстанс типа e2-medium и standard disk 10GB
 ```console
+gcloud compute instances create otus06...
 ```
 установить на него PostgreSQL 13 с дефолтными настройками
 ```console
+[root@otus06 ~]# yum install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+[root@otus06 ~]# yum install -y postgresql14-server
+[root@otus06 ~]# /usr/pgsql-14/bin/postgresql-14-setup initdb
+[root@otus06 ~]# systemctl enable --now postgresql-14
 ```
 применить параметры настройки PostgreSQL из прикрепленного к материалам занятия файла
 ```console
