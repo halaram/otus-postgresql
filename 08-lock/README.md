@@ -120,11 +120,13 @@ lock=# select pid, locktype, relation::regclass, virtualxid, transactionid, mode
  1689 | virtualxid    |          | 4/28       |               | ExclusiveLock    | t
  1689 | transactionid |          |            |           747 | ExclusiveLock    | t
  1689 | relation      | lck      |            |               | RowExclusiveLock | t <-1
+
  1794 | virtualxid    |          | 5/14       |               | ExclusiveLock    | t
  1794 | transactionid |          |            |           747 | ShareLock        | f <-2
  1794 | tuple         | lck      |            |               | ExclusiveLock    | t
  1794 | transactionid |          |            |           748 | ExclusiveLock    | t
  1794 | relation      | lck      |            |               | RowExclusiveLock | t
+
  2060 | tuple         | lck      |            |               | ExclusiveLock    | f <-3
  2060 | virtualxid    |          | 6/7        |               | ExclusiveLock    | t
  2060 | transactionid |          |            |           749 | ExclusiveLock    | t
@@ -132,8 +134,9 @@ lock=# select pid, locktype, relation::regclass, virtualxid, transactionid, mode
 (12 rows)
 ```
 <b> Каждый из сеансов удерживает исключительные блокировки ExclusiveLock своего виртуального номера virtualxid и своего номера транзакции transactionid.  
-Первый сеанс (1689) захватил блокировку RowExclusiveLock таблицы lck.  
-Второй сеанс (1794) ожидает 
+Каждый из сеансов установил блокировку RowExclusiveLock для изменения таблицы lck.  
+Второй сеанс (1794) ожидает блокировку transactionid типа ShareLock для первого сеанса и удерживает блокировку ExclusiveLock типа tuple для строки.  
+Третий сеанс (2060) ожидает блокировку ExclusiveLock типа tuple, которую удерживает второй сеанс.  
 > Воспроизведите взаимоблокировку трех транзакций. Можно ли разобраться в ситуации постфактум, изучая журнал сообщений?  
 ```console
 ```
