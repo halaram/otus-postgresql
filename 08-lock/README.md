@@ -22,6 +22,31 @@ lock=# select pg_reload_conf();
  t
 (1 row)
 ```
+- Воспроизведите ситуацию, при которой в журнале появятся такие сообщения.  
+```sql
+lock=# create table lck(i int);
+CREATE TABLE
+lock-session1=#insert into lck values (0),(1),(2);
+INSERT 0 3
+```
+первая сессия:
+```sql
+lock=# \set PROMPT1 %/-session2%R%x%#
+lock-session1=#select pg_backend_pid();
+ pg_backend_pid 
+----------------
+           1689
+(1 row)
+```
+вторая сессия
+```sql
+lock=# \set PROMPT1 %/-session2%R%x%#
+lock-session2=#select pg_backend_pid();
+ pg_backend_pid 
+----------------
+           1794
+(1 row)
+```
 - Смоделируйте ситуацию обновления одной и той же строки тремя командами UPDATE в разных сеансах. Изучите возникшие блокировки в представлении pg_locks и убедитесь, что все они понятны. Пришлите список блокировок и объясните, что значит каждая.  
 ```console
 ```
