@@ -138,7 +138,90 @@ lock=# select pid, locktype, relation::regclass, virtualxid, transactionid, mode
 Второй сеанс (1794) ожидает блокировку transactionid типа ShareLock для первого сеанса и удерживает блокировку ExclusiveLock типа tuple для строки.  
 Третий сеанс (2060) ожидает блокировку ExclusiveLock типа tuple, которую удерживает второй сеанс.  </b>
 > Воспроизведите взаимоблокировку трех транзакций. Можно ли разобраться в ситуации постфактум, изучая журнал сообщений?  
+- первая сессия
+```sql
+lock-session1=#begin;
+BEGIN
+lock-session1=*#select pg_backend_pid(), txid_current();
+ pg_backend_pid | txid_current 
+----------------+--------------
+           1689 |          751
+(1 row)
+
+lock-session1=*#update lck set i = 0 where i = 0;
+UPDATE 1
+```
+- вторая сессия
+```sql
+lock-session2=#begin;
+BEGIN
+lock-session2=*#select pg_backend_pid(), txid_current();
+ pg_backend_pid | txid_current 
+----------------+--------------
+           1794 |          752
+(1 row)
+
+lock-session2=*#update lck set i = 1 where i = 1;
+UPDATE 1
+```
+- третья сессия
+```sql
+lock-session3=#begin;
+BEGIN
+lock-session3=*#select pg_backend_pid(), txid_current();
+ pg_backend_pid | txid_current 
+----------------+--------------
+           2060 |          753
+(1 row)
+
+lock-session3=*#update lck set i = 2 where i = 2;
+UPDATE 1
+```
+- первая сессия
+```sql
+lock-session1=*#update lck set i = 1 where i = 1;
+```
+- вторая сессия
+```sql
+lock-session2=*#update lck set i = 2 where i = 2;
+```
+- третья сессия
+```sql
+lock-session3=*#update lck set i = 0 where i = 0;
+ERROR:  deadlock detected
+DETAIL:  Process 2060 waits for ShareLock on transaction 751; blocked by process 1689.
+Process 1689 waits for ShareLock on transaction 752; blocked by process 1794.
+Process 1794 waits for ShareLock on transaction 753; blocked by process 2060.
+HINT:  See server log for query details.
+CONTEXT:  while updating tuple (0,3) in relation "lck"
+```
+- лог
 ```console
+2021-10-31 17:30:28.172 UTC [1689] LOG:  process 1689 still waiting for ShareLock on transaction 752 after 200.140 ms
+2021-10-31 17:30:28.172 UTC [1689] DETAIL:  Process holding the lock: 1794. Wait queue: 1689.
+2021-10-31 17:30:28.172 UTC [1689] CONTEXT:  while updating tuple (0,1) in relation "lck"
+2021-10-31 17:30:28.172 UTC [1689] STATEMENT:  update lck set i = 1 where i = 1;
+2021-10-31 17:31:59.531 UTC [1794] LOG:  process 1794 still waiting for ShareLock on transaction 753 after 200.183 ms
+2021-10-31 17:31:59.531 UTC [1794] DETAIL:  Process holding the lock: 2060. Wait queue: 1794.
+2021-10-31 17:31:59.531 UTC [1794] CONTEXT:  while updating tuple (0,2) in relation "lck"
+2021-10-31 17:31:59.531 UTC [1794] STATEMENT:  update lck set i = 2 where i = 2;
+2021-10-31 17:33:25.487 UTC [2060] LOG:  process 2060 detected deadlock while waiting for ShareLock on transaction 751 after 200.174 ms
+2021-10-31 17:33:25.487 UTC [2060] DETAIL:  Process holding the lock: 1689. Wait queue: .
+2021-10-31 17:33:25.487 UTC [2060] CONTEXT:  while updating tuple (0,3) in relation "lck"
+2021-10-31 17:33:25.487 UTC [2060] STATEMENT:  update lck set i = 0 where i = 0;
+2021-10-31 17:33:25.488 UTC [2060] ERROR:  deadlock detected
+2021-10-31 17:33:25.488 UTC [2060] DETAIL:  Process 2060 waits for ShareLock on transaction 751; blocked by process 1689.
+    Process 1689 waits for ShareLock on transaction 752; blocked by process 1794.
+    Process 1794 waits for ShareLock on transaction 753; blocked by process 2060.
+    Process 2060: update lck set i = 0 where i = 0;
+    Process 1689: update lck set i = 1 where i = 1;
+    Process 1794: update lck set i = 2 where i = 2;
+2021-10-31 17:33:25.488 UTC [2060] HINT:  See server log for query details.
+2021-10-31 17:33:25.488 UTC [2060] CONTEXT:  while updating tuple (0,3) in relation "lck"
+2021-10-31 17:33:25.488 UTC [2060] STATEMENT:  update lck set i = 0 where i = 0;
+2021-10-31 17:33:25.488 UTC [1794] LOG:  process 1794 acquired ShareLock on transaction 753 after 86157.315 ms
+2021-10-31 17:33:25.488 UTC [1794] CONTEXT:  while updating tuple (0,2) in relation "lck"
+2021-10-31 17:33:25.488 UTC [1794] STATEMENT:  update lck set i = 2 where i = 2;
 ```
 > Могут ли две транзакции, выполняющие единственную команду UPDATE одной и той же таблицы (без where), заблокировать друг друга?  
 ```console
