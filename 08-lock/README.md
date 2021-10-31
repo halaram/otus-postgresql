@@ -119,13 +119,13 @@ lock=# select pid, locktype, relation::regclass, virtualxid, transactionid, mode
 ------+---------------+----------+------------+---------------+------------------+---------
  1689 | virtualxid    |          | 4/28       |               | ExclusiveLock    | t
  1689 | transactionid |          |            |           747 | ExclusiveLock    | t
-<b> 1689 | relation      | lck      |            |               | RowExclusiveLock | t </b>
+ 1689 | relation      | lck      |            |               | RowExclusiveLock | t <-1
  1794 | virtualxid    |          | 5/14       |               | ExclusiveLock    | t
- 1794 | transactionid |          |            |           747 | ShareLock        | f
+ 1794 | transactionid |          |            |           747 | ShareLock        | f <-2
  1794 | tuple         | lck      |            |               | ExclusiveLock    | t
  1794 | transactionid |          |            |           748 | ExclusiveLock    | t
  1794 | relation      | lck      |            |               | RowExclusiveLock | t
- 2060 | tuple         | lck      |            |               | ExclusiveLock    | f
+ 2060 | tuple         | lck      |            |               | ExclusiveLock    | f <-3
  2060 | virtualxid    |          | 6/7        |               | ExclusiveLock    | t
  2060 | transactionid |          |            |           749 | ExclusiveLock    | t
  2060 | relation      | lck      |            |               | RowExclusiveLock | t
