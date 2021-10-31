@@ -112,6 +112,25 @@ lock-session3=*#update lck set i = 0 where i = 0;
 2021-10-31 15:44:10.826 UTC [2060] DETAIL:  Process holding the lock: 1794. Wait queue: 2060.
 2021-10-31 15:44:10.826 UTC [2060] STATEMENT:  update lck set i = 0 where i = 0;
 ```
+- информация о блокировках в представлении pg_locks:
+```sql
+lock=# select pid, locktype, relation::regclass, virtualxid, transactionid, mode, granted from pg_locks where pid in (1689, 1794, 2060) order by pid;
+ pid  |   locktype    | relation | virtualxid | transactionid |       mode       | granted 
+------+---------------+----------+------------+---------------+------------------+---------
+ 1689 | virtualxid    |          | 4/28       |               | ExclusiveLock    | t
+ 1689 | transactionid |          |            |           747 | ExclusiveLock    | t
+ 1689 | relation      | lck      |            |               | RowExclusiveLock | t
+ 1794 | virtualxid    |          | 5/14       |               | ExclusiveLock    | t
+ 1794 | transactionid |          |            |           747 | ShareLock        | f
+ 1794 | tuple         | lck      |            |               | ExclusiveLock    | t
+ 1794 | transactionid |          |            |           748 | ExclusiveLock    | t
+ 1794 | relation      | lck      |            |               | RowExclusiveLock | t
+ 2060 | tuple         | lck      |            |               | ExclusiveLock    | f
+ 2060 | virtualxid    |          | 6/7        |               | ExclusiveLock    | t
+ 2060 | transactionid |          |            |           749 | ExclusiveLock    | t
+ 2060 | relation      | lck      |            |               | RowExclusiveLock | t
+(12 rows)
+```
 > Воспроизведите взаимоблокировку трех транзакций. Можно ли разобраться в ситуации постфактум, изучая журнал сообщений?  
 ```console
 ```
