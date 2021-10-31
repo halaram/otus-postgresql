@@ -223,7 +223,37 @@ CONTEXT:  while updating tuple (0,3) in relation "lck"
 > Попробуйте воспроизвести такую ситуацию.  
 
 <b> Устойчиво воспроизвести ситуацию без where в двух транзакциях не удалось. Для изменения плана запроса использовались методы с установкой параметра "set enable_seqscan = off;" и расширение pg_hint_plan.</b>
-- Пример с "set enable_seqscan = off;"
+- Пример с "set enable_seqscan = off;" Заполним таблицу большим количеством значений и построим индекс.
 ```sql
-
+lock-session1=#insert into lck select i from generate_series(0, 1000000) sq(i);
+INSERT 0 1000001
+lock-session1=#create index on lck (i desc);
+CREATE INDEX
 ```
+- Сравним планы выполнения с включенным и отключенным enable_seqscan:
+```sql
+lock-session1=#explain (costs off) update lck set i = i + 1;
+      QUERY PLAN       
+-----------------------
+ Update on lck
+   ->  Seq Scan on lck
+(2 rows)
+
+lock-session1=#set enable_seqscan = off;
+SET
+lock-session1=#explain (costs off) update lck set i = i + 1;
+      QUERY PLAN       
+-----------------------
+ Update on lck
+   ->  Seq Scan on lck
+(2 rows)
+
+lock-session1=#explain (costs off) update lck set i = i + 1 where i > 0;
+               QUERY PLAN                
+-----------------------------------------
+ Update on lck
+   ->  Index Scan using lck_i_idx on lck
+         Index Cond: (i > 0)
+(3 rows)
+```
+- Как видно, без установки хотя бы бессмысленного where i > 0 изменить план на index scan не удаётся.
