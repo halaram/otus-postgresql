@@ -56,7 +56,7 @@ lock-session2=#begin;
 BEGIN
 lock-session2=*#update lck set i = 0 where i = 0;
 ```
-- в логe сообщение о возникшей блокировке:
+- в логe сообщения о возникшей блокировке:
 ```console
 2021-10-31 14:41:17.482 UTC [1794] LOG:  process 1794 still waiting for ShareLock on transaction 737 after 200.132 ms
 2021-10-31 14:41:17.482 UTC [1794] DETAIL:  Process holding the lock: 1689. Wait queue: 1794.
