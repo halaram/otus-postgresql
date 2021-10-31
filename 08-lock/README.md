@@ -64,15 +64,31 @@ lock-session2=*#update lck set i = 0 where i = 0;
 2021-10-31 14:41:17.482 UTC [1794] STATEMENT:  update lck set i = 0 where i = 0;
 ```
 > Смоделируйте ситуацию обновления одной и той же строки тремя командами UPDATE в разных сеансах. Изучите возникшие блокировки в представлении pg_locks и убедитесь, что все они понятны. Пришлите список блокировок и объясните, что значит каждая.  
+- первая сессия
+```sql
+lock-session1=#select pg_backend_pid(), txid_current();
+ pg_backend_pid | txid_current 
+----------------+--------------
+           1689 |          739
+(1 row)
+```
+- вторая сессия
+```sql
+lock-session2=#select pg_backend_pid(), txid_current();
+ pg_backend_pid | txid_current 
+----------------+--------------
+           1794 |          740
+(1 row)
+```
 - третья сессия
 ```sql
 postgres=# \set PROMPT1 %/-session3%R%x%#
 postgres-session3=#\c lock 
 You are now connected to database "lock" as user "postgres".
-lock-session3=#select pg_backend_pid();
- pg_backend_pid 
-----------------
-           2060
+lock-session3=#select pg_backend_pid(), txid_current();
+ pg_backend_pid | txid_current 
+----------------+--------------
+           2060 |          741
 (1 row)
 ```
 > Воспроизведите взаимоблокировку трех транзакций. Можно ли разобраться в ситуации постфактум, изучая журнал сообщений?  
