@@ -7,8 +7,20 @@
 <b>Имя проекта - postgres2021-2147483647</b>
 
 - Настройте сервер так, чтобы в журнал сообщений сбрасывалась информация о блокировках, удерживаемых более 200 миллисекунд. Воспроизведите ситуацию, при которой в журнале появятся такие сообщения.  
-```console
-
+```sql
+postgres=# create database lock;
+CREATE DATABASE
+postgres=# \c lock 
+You are now connected to database "lock" as user "postgres".
+lock=# alter system set log_lock_waits = 'on';
+ALTER SYSTEM
+lock=# alter system set deadlock_timeout = '200';
+ALTER SYSTEM
+lock=# select pg_reload_conf();
+ pg_reload_conf 
+----------------
+ t
+(1 row)
 ```
 - Смоделируйте ситуацию обновления одной и той же строки тремя командами UPDATE в разных сеансах. Изучите возникшие блокировки в представлении pg_locks и убедитесь, что все они понятны. Пришлите список блокировок и объясните, что значит каждая.  
 ```console
