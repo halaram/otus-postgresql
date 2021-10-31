@@ -197,14 +197,6 @@ CONTEXT:  while updating tuple (0,3) in relation "lck"
 ```
 - лог
 ```console
-2021-10-31 17:30:28.172 UTC [1689] LOG:  process 1689 still waiting for ShareLock on transaction 752 after 200.140 ms
-2021-10-31 17:30:28.172 UTC [1689] DETAIL:  Process holding the lock: 1794. Wait queue: 1689.
-2021-10-31 17:30:28.172 UTC [1689] CONTEXT:  while updating tuple (0,1) in relation "lck"
-2021-10-31 17:30:28.172 UTC [1689] STATEMENT:  update lck set i = 1 where i = 1;
-2021-10-31 17:31:59.531 UTC [1794] LOG:  process 1794 still waiting for ShareLock on transaction 753 after 200.183 ms
-2021-10-31 17:31:59.531 UTC [1794] DETAIL:  Process holding the lock: 2060. Wait queue: 1794.
-2021-10-31 17:31:59.531 UTC [1794] CONTEXT:  while updating tuple (0,2) in relation "lck"
-2021-10-31 17:31:59.531 UTC [1794] STATEMENT:  update lck set i = 2 where i = 2;
 2021-10-31 17:33:25.487 UTC [2060] LOG:  process 2060 detected deadlock while waiting for ShareLock on transaction 751 after 200.174 ms
 2021-10-31 17:33:25.487 UTC [2060] DETAIL:  Process holding the lock: 1689. Wait queue: .
 2021-10-31 17:33:25.487 UTC [2060] CONTEXT:  while updating tuple (0,3) in relation "lck"
