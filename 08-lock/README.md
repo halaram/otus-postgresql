@@ -256,4 +256,37 @@ lock-session1=#explain (costs off) update lck set i = i + 1 where i > 0;
          Index Cond: (i > 0)
 (3 rows)
 ```
-- Как видно, без установки хотя бы бессмысленного where i > 0 изменить план на index scan не удаётся.
+- Как видно, без установки хотя бы бессмысленного where i > 0 изменить план на index scan не удаётся. Пример взаимоблокировки двух транзакций. Первый сеанс:
+```sql
+lock-session1=#begin;
+BEGIN
+lock-session1=*#select pg_backend_pid(), txid_current();
+ pg_backend_pid | txid_current 
+----------------+--------------
+          16959 |          761
+(1 row)
+
+lock-session1=*#update lck set i = i + 1;
+UPDATE 1000001
+lock-session1=*#
+```
+- Второй сеанс:
+```sql
+lock-session2=#begin;
+BEGIN
+lock-session2=*#select pg_backend_pid(), txid_current();
+ pg_backend_pid | txid_current 
+----------------+--------------
+           1794 |          762
+(1 row)
+
+lock-session2=*#set enable_seqscan = off;
+SET
+lock-session2=*#update lck set i = i - 1 where i > 0;
+ERROR:  deadlock detected
+DETAIL:  Process 1794 waits for ShareLock on transaction 761; blocked by process 16959.
+Process 16959 waits for ShareLock on transaction 762; blocked by process 1794.
+HINT:  See server log for query details.
+CONTEXT:  while updating tuple (2422,45) in relation "lck"
+lock-session2=!#
+```
