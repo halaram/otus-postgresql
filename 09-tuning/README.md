@@ -21,7 +21,9 @@
 [root@otus08 ~]# curl -s https://packagecloud.io/install/repositories/akopytov/sysbench/script.rpm.sh | sudo bash
 [root@otus08 ~]# yum -y install sysbench
 -bash-4.2$ sysbench --db-driver=pgsql --pgsql-db=sysbench --pgsql-user=tune --pgsql-password=tune --report-interval=30 --tables=10 --table_size=1000000 oltp_read_write prepare
+```
 
+```sql
 postgres=# \c sysbench 
 You are now connected to database "sysbench" as user "postgres".
 sysbench=# \dt+
@@ -39,8 +41,9 @@ sysbench=# \dt+
  public | sbtest8  | table | tune  | permanent   | heap          | 211 MB | 
  public | sbtest9  | table | tune  | permanent   | heap          | 211 MB | 
 (10 rows)
+```
 
-
+```console
 -bash-4.2$ sysbench --db-driver=pgsql --pgsql-db=sysbench --pgsql-user=tune --pgsql-password=tune --report-interval=30 --tables=10 --table_size=1000000 --threads=8 --time=600 oltp_read_write run
 sysbench 1.0.20 (using bundled LuaJIT 2.1.0-beta2)
 
@@ -99,7 +102,9 @@ Latency (ms):
 Threads fairness:
     events (avg/stddev):           5193.1250/11.38
     execution time (avg/stddev):   600.4047/0.01
+```
 
+```console
 -bash-4.2$ cat postgresql.tune.conf 
 shared_buffers = 1500MB
 maintenance_work_mem = 200MB
@@ -115,8 +120,9 @@ max_worker_processes = 2
 max_parallel_workers = 2
 max_parallel_maintenance_workers = 1
 max_parallel_workers_per_gather = 1
+```
 
-
+```console
 -bash-4.2$ sysbench --db-driver=pgsql --pgsql-db=sysbench --pgsql-user=tune --pgsql-password=tune --report-interval=30 --tables=10 --table_size=1000000 --threads=8 --time=600 oltp_read_write run
 sysbench 1.0.20 (using bundled LuaJIT 2.1.0-beta2)
 
