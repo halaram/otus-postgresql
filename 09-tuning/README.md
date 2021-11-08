@@ -20,9 +20,12 @@
 ```console
 [root@otus08 ~]# curl -s https://packagecloud.io/install/repositories/akopytov/sysbench/script.rpm.sh | sudo bash
 [root@otus08 ~]# yum -y install sysbench
+```
+Заполним отдельно созданную БД без data_checksums sysbench тестовыми данными под пользователем tune:
+```console
 -bash-4.2$ sysbench --db-driver=pgsql --pgsql-db=sysbench --pgsql-user=tune --pgsql-password=tune --report-interval=30 --tables=10 --table_size=1000000 oltp_read_write prepare
 ```
-
+В БД sysbench 10 таблиц по 211MB:
 ```sql
 postgres=# \c sysbench 
 You are now connected to database "sysbench" as user "postgres".
@@ -42,7 +45,7 @@ sysbench=# \dt+
  public | sbtest9  | table | tune  | permanent   | heap          | 211 MB | 
 (10 rows)
 ```
-
+Проведём тест OLTP read/write в 8 потоков в течение 10 мин:
 ```console
 -bash-4.2$ sysbench --db-driver=pgsql --pgsql-db=sysbench --pgsql-user=tune --pgsql-password=tune --report-interval=30 --tables=10 --table_size=1000000 --threads=8 --time=600 oltp_read_write run
 sysbench 1.0.20 (using bundled LuaJIT 2.1.0-beta2)
@@ -103,7 +106,9 @@ Threads fairness:
     events (avg/stddev):           5193.1250/11.38
     execution time (avg/stddev):   600.4047/0.01
 ```
+<b> Среднее значение на ненастроенном Postgres 69 tps</b>
 
+Применим параметры из отдельно подготовленного файла postgresql.tune.conf через include в postgresql.conf, с последующим рестаром БД:
 ```console
 -bash-4.2$ cat postgresql.tune.conf 
 shared_buffers = 1500MB
@@ -122,6 +127,7 @@ max_parallel_maintenance_workers = 1
 max_parallel_workers_per_gather = 1
 ```
 
+Проведём повторный тест:
 ```console
 -bash-4.2$ sysbench --db-driver=pgsql --pgsql-db=sysbench --pgsql-user=tune --pgsql-password=tune --report-interval=30 --tables=10 --table_size=1000000 --threads=8 --time=600 oltp_read_write run
 sysbench 1.0.20 (using bundled LuaJIT 2.1.0-beta2)
@@ -184,3 +190,10 @@ Threads fairness:
 
 ```
 > написать какого значения tps удалось достичь, показать какие параметры в какие значения устанавливали и почему  
+
+<b> После установки параметров среднее значение 333 tps.
+Основная цель установки параметров - снижение влияния производительности дисковой подсистемы на результаты теста.
+1. Увеличены значения shared_buffers до примерно 40% ОЗУ, work_mem для операций сортировки, соответственно max_connections уменьшен до минимума (threads + superuser_reserved_connections).
+2. Процессы контрольных точек сведены к минимуму установкой параметров checkpoint_timeout = 24h, max_wal_size = 10GB.
+3. Отключены synchronous_commit, fsync для ускорения операций ввода-вывода. full_page_writes выключен для предотвращения дополнительной записи страниц на диск при первом изменении.
+</b>
