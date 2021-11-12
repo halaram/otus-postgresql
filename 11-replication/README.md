@@ -23,10 +23,13 @@ postgres=# create database repl;
 CREATE DATABASE
 postgres=# \c repl
 You are now connected to database "repl" as user "postgres".
+
 repl=# create table test1 (k1 int, v1 varchar);
 CREATE TABLE
 repl=# insert into test1 select i, md5(i::varchar) from generate_series(0, 99) as s(i);
 INSERT 0 100
+repl=# create table test2 (k2 int, v2 varchar);
+CREATE TABLE
 ```
 >Создаем публикацию таблицы test1 и подписываемся на публикацию таблицы test2 с ВМ №2.
 ```sql
@@ -40,13 +43,9 @@ repl=# \dRp+
 Tables:
     "public.test1"
 
-repl=# create table test2 (k2 int, v2 varchar);
-CREATE TABLE
-
 repl=# create subscription subs_test2 connection 'host=otus11-2 user=postgres password=postgres dbname=repl' publication publ_test2 with (copy_data = true);
 NOTICE:  created replication slot "subs_test2" on publisher
 CREATE SUBSCRIPTION
-
 repl=# \dRs+
                                                                 List of subscriptions
     Name    |  Owner   | Enabled | Publication  | Binary | Streaming | Synchronous commit |                         Conninfo                          
@@ -65,15 +64,19 @@ ALTER SYSTEM
 postgres=# create database repl;
 CREATE DATABASE
 postgres=# \c repl
+
 You are now connected to database "repl" as user "postgres".
 repl=# create table test2 (k2 int, v2 varchar);
+CREATE TABLE
+repl=# insert into test2 select i, md5(i::varchar) from generate_series(0, 99) as s(i);
+INSERT 0 100
+repl=# create table test1 (k1 int, v1 varchar);
 CREATE TABLE
 ```
 >Создаем публикацию таблицы test2 и подписываемся на публикацию таблицы test1 с ВМ №1.
 ```sql
 repl=# create publication publ_test2 for table test2;
 CREATE PUBLICATION
-
 repl=# \dRp+
                            Publication publ_test2
   Owner   | All tables | Inserts | Updates | Deletes | Truncates | Via root 
@@ -82,13 +85,9 @@ repl=# \dRp+
 Tables:
     "public.test2"
 
-repl=# create table test1 (k1 int, v1 varchar);
-CREATE TABLE
-
 repl=# create subscription subs_test1 connection 'host=otus11-1 user=postgres password=postgres dbname=repl' publication publ_test1 with (copy_data = true);
 NOTICE:  created replication slot "subs_test1" on publisher
 CREATE SUBSCRIPTION
-
 repl=# \dRs+
                                                                 List of subscriptions
     Name    |  Owner   | Enabled | Publication  | Binary | Streaming | Synchronous commit |                         Conninfo                          
