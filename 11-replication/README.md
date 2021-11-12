@@ -64,8 +64,8 @@ ALTER SYSTEM
 postgres=# create database repl;
 CREATE DATABASE
 postgres=# \c repl
-
 You are now connected to database "repl" as user "postgres".
+
 repl=# create table test2 (k2 int, v2 varchar);
 CREATE TABLE
 repl=# insert into test2 select i, md5(i::varchar) from generate_series(0, 99) as s(i);
