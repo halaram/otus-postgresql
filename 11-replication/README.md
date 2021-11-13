@@ -24,11 +24,11 @@ CREATE DATABASE
 postgres=# \c repl
 You are now connected to database "repl" as user "postgres".
 
-repl=# create table test1 (k1 int, v1 varchar);
+repl=# create table test1 (k1 serial primary key);
 CREATE TABLE
-repl=# insert into test1 select i, md5(i::varchar) from generate_series(0, 99) as s(i);
+repl=# insert into test1 select i from generate_series(0, 99) as s(i);
 INSERT 0 100
-repl=# create table test2 (k2 int, v2 varchar);
+repl=# create table test2 (k2 serial primary key);
 CREATE TABLE
 ```
 >Создаем публикацию таблицы test1 и подписываемся на публикацию таблицы test2 с ВМ №2.
@@ -66,11 +66,11 @@ CREATE DATABASE
 postgres=# \c repl
 You are now connected to database "repl" as user "postgres".
 
-repl=# create table test2 (k2 int, v2 varchar);
+repl=# create table test2 (k2 serial primary key);
 CREATE TABLE
-repl=# insert into test2 select i, md5(i::varchar) from generate_series(0, 99) as s(i);
+repl=# insert into test2 select i from generate_series(0, 99) as s(i);
 INSERT 0 100
-repl=# create table test1 (k1 int, v1 varchar);
+repl=# create table test1 (k1 serial primary key);
 CREATE TABLE
 ```
 >Создаем публикацию таблицы test2 и подписываемся на публикацию таблицы test1 с ВМ №1.
@@ -108,9 +108,9 @@ CREATE DATABASE
 postgres=# \c repl 
 You are now connected to database "repl" as user "postgres".
 
-repl=# create table test1 (k1 int, v1 varchar);
+repl=# create table test1 (k1 serial primary key);
 CREATE TABLE
-repl=# create table test2 (k2 int, v2 varchar);
+repl=# create table test2 (k2 serial primary key);
 CREATE TABLE
 
 repl=# create subscription subs_test1_3 connection 'host=otus11-1 user=postgres password=postgres dbname=repl' publication publ_test1 with (copy_data = true);
@@ -207,15 +207,30 @@ sync_priority    | 1
 sync_state       | sync
 reply_time       | 2021-11-13 18:07:22.710983+00
 ```
-- для проверки репликации внесём изменение на ВМ1
+<b>проверим работу репликации ВМ1 -> ВМ3 -> ВМ4 и ВМ2 -> ВМ3 -> ВМ4</b>
+
+- добавим данные на ВМ1
 ```sql
-repl=# insert into test1 values (100, 'relpication');
+repl=# insert into test1 values (100);
 INSERT 0 1
 ```
-- проверим их на ВМ4
+- ВМ4
 ```sql
 repl=# select * from test1 where k1 = 100;
- k1  |     v1      
------+-------------
- 100 | relpication
+ k1  
+-----
+ 100
+(1 row)
+```
+- удалим данные на ВМ2
+```sql
+repl=# delete from test2 where k2 = 99;
+DELETE 1
+```
+- ВМ4
+```sql
+repl=# select * from test2 where k2 = 99;
+ k1 
+----
+(0 rows)
 ```
