@@ -95,5 +95,55 @@ repl=# \dRs+
  subs_test1 | postgres | t       | {publ_test1} | f      | f         | off                | host=otus11-1 user=postgres password=postgres dbname=repl
 ```
 >3 ВМ использовать как реплику для чтения и бэкапов (подписаться на таблицы из ВМ №1 и №2 ). Небольшое описание, того, что получилось.
+```sql
+postgres=# alter system set wal_level = 'logical';
+ALTER SYSTEM
+```
+```console
+-bash-4.2$ /usr/pgsql-14/bin/pg_ctl -D /var/lib/pgsql/14/data restart
+```
+```sql
+postgres=# create database repl;
+CREATE DATABASE
+postgres=# \c repl 
+You are now connected to database "repl" as user "postgres".
 
+repl=# create table test1 (k1 int, v1 varchar);
+CREATE TABLE
+repl=# create table test2 (k2 int, v2 varchar);
+CREATE TABLE
+
+repl=# create subscription subs_test1_3 connection 'host=otus11-1 user=postgres password=postgres dbname=repl' publication publ_test1 with (copy_data = true);
+NOTICE:  created replication slot "subs_test1_3" on publisher
+CREATE SUBSCRIPTION
+repl=# create subscription subs_test2_3 connection 'host=otus11-2 user=postgres password=postgres dbname=repl' publication publ_test2 with (copy_data = true);
+NOTICE:  created replication slot "subs_test2_3" on publisher
+CREATE SUBSCRIPTION
+
+repl=# \dRs+
+                                                                 List of subscriptions
+     Name     |  Owner   | Enabled | Publication  | Binary | Streaming | Synchronous commit |                         Conninfo                          
+--------------+----------+---------+--------------+--------+-----------+--------------------+-----------------------------------------------------------
+ subs_test1_3 | postgres | t       | {publ_test1} | f      | f         | off                | host=otus11-1 user=postgres password=postgres dbname=repl
+ subs_test2_3 | postgres | t       | {publ_test2} | f      | f         | off                | host=otus11-2 user=postgres password=postgres dbname=repl
+```
+<b>На таблицы test1 ВМ1 и test2 ВМ2 две подписки. Можно посмотреть статус репликации:</b>
+- ВМ1
+```sql
+postgres=# select application_name,client_addr, application_name, state, sync_state from pg_stat_replication;
+ application_name | client_addr | application_name |   state   | sync_state 
+------------------+-------------+------------------+-----------+------------
+ subs_test1       | 10.128.0.10 | subs_test1       | streaming | async
+ subs_test1_3     | 10.128.0.11 | subs_test1_3     | streaming | async
+```
+- ВМ2
+```sql
+postgres=# select application_name,client_addr, application_name, state, sync_state from pg_stat_replication;
+ application_name | client_addr | application_name |   state   | sync_state 
+------------------+-------------+------------------+-----------+------------
+ subs_test2       | 10.128.0.9  | subs_test2       | streaming | async
+ subs_test2_3     | 10.128.0.11 | subs_test2_3     | streaming | async
+```
 >реализовать горячее реплицирование для высокой доступности на 4ВМ. Источником должна выступать ВМ №3. Написать с какими проблемами столкнулись.
+```console
+```
