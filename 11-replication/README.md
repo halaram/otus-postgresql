@@ -145,5 +145,77 @@ postgres=# select application_name,client_addr, application_name, state, sync_st
  subs_test2_3     | 10.128.0.11 | subs_test2_3     | streaming | async
 ```
 >реализовать горячее реплицирование для высокой доступности на 4ВМ. Источником должна выступать ВМ №3. Написать с какими проблемами столкнулись.
+- на ВМ3 настроим параметры для синхронной репликации.
+```sql
+repl=# show hot_standby;
+ hot_standby 
+-------------
+ on
+
+postgres=# alter system set synchronous_standby_names = '*';
+ALTER SYSTEM
+postgres=# select pg_reload_conf();
+ pg_reload_conf 
+----------------
+ t
+```
+- на ВМ4 создадим реплику при помощи pg_basebackup, ключ -R создаёт standby.signal и прописывает настройки в файл postgresql.auto.conf
 ```console
+-bash-4.2$ /usr/pgsql-14/bin/pg_basebackup -h otus11-3 -U postgres -D /var/lib/pgsql/14/data/ -Xs -R -P
+Password: 
+35849/35849 kB (100%), 1/1 tablespace
+
+-bash-4.2$ /usr/pgsql-14/bin/pg_ctl -D /var/lib/pgsql/14/data start
+waiting for server to start....2021-11-13 18:04:45.981 UTC [1887] LOG:  redirecting log output to logging collector process
+2021-11-13 18:04:45.981 UTC [1887] HINT:  Future log output will appear in directory "log".
+ done
+server started
+```
+```sql
+postgres=# \c repl 
+You are now connected to database "repl" as user "postgres".
+repl=# \dt
+         List of relations
+ Schema | Name  | Type  |  Owner   
+--------+-------+-------+----------
+ public | test1 | table | postgres
+ public | test2 | table | postgres
+(2 rows)
+```
+- на ВМ3 проверим статус репликации:
+```sql
+repl=# select * from pg_stat_replication\gx
+-[ RECORD 1 ]----+------------------------------
+pid              | 2126
+usesysid         | 10
+usename          | postgres
+application_name | walreceiver
+client_addr      | 10.128.0.12
+client_hostname  | 
+client_port      | 42796
+backend_start    | 2021-11-13 18:04:46.076374+00
+backend_xmin     | 
+state            | streaming
+sent_lsn         | 0/3000148
+write_lsn        | 0/3000148
+flush_lsn        | 0/3000148
+replay_lsn       | 0/3000148
+write_lag        | 
+flush_lag        | 
+replay_lag       | 
+sync_priority    | 1
+sync_state       | sync
+reply_time       | 2021-11-13 18:07:22.710983+00
+```
+- для проверки репликации внесём изменение на ВМ1
+```sql
+repl=# insert into test1 values (100, 'relpication');
+INSERT 0 1
+```
+- проверим их на ВМ4
+```sql
+repl=# select * from test1 where k1 = 100;
+ k1  |     v1      
+-----+-------------
+ 100 | relpication
 ```
