@@ -40,7 +40,7 @@ SQL> select count(*) from taxi_trips;
 
 Elapsed: 00:07:46.05
 ```
-- Выполним sql-запрос с операциями группировки и сортировки для оценки скорости:
+- Выполним sql-запрос с операциями группировки и сортировки для оценки времени:
 ```sql
 SQL> select payment_type, round(sum(tips)/sum(trip_total)*100, 0) + 0 as tips_percent, count(*) as c from taxi_trips group by payment_type order by 3;
 
