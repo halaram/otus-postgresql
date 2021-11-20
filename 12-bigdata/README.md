@@ -20,7 +20,7 @@
 ```console
 [oracle@otus12 taxi_2021_11_18]$ for i in {00..39}; do sqlldr taxi/12345678@//127.0.0.1:1521/xepdb1 data=/mnt/taxi_2021_11_18/taxi_0000000000$i.csv control=/home/oracle/sqlldr_taxi.ctl log=/home/oracle/sqlldr_taxi_0000000000$i.log bad=/home/oracle/taxi_0000000000$i_bad.csv; done
 ```
-- Размер таблицы taxi_trips > 11GB, количество строк около 30 миллионов:
+
 ```sql
 SQL> show parameter sga;
 
@@ -38,7 +38,10 @@ NAME				     TYPE	 VALUE
 ------------------------------------ ----------- ------------------------------
 pga_aggregate_limit		     big integer 2G
 pga_aggregate_target		     big integer 378M
+```
+- Размер таблицы taxi_trips > 10GB, количество строк около 26 миллионов:
 
+```sql
 SQL> set timing on;
 
 SQL> select BYTES/1024/1024/1024 from user_segments where SEGMENT_NAME = 'TAXI_TRIPS';
