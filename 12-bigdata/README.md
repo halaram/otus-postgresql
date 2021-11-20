@@ -19,7 +19,7 @@
 
 С помощью gcsfuse примонтирован bucket с данными сета chicago_taxi_trips и загружены данные инструментом sqlldr:  
 ```console
-[oracle@otus12 taxi_2021_11_18]$ for i in {00..49}; do echo $i; sqlldr taxi/12345678@//127.0.0.1:1521/xepdb1 data=/mnt/taxi_2021_11_18/taxi_0000000000$i.csv control=/home/oracle/sqlldr_taxi.ctl log=/home/oracle/sqlldr_taxi_0000000000$i.log bad=/home/oracle/taxi_0000000000$i_bad.csv; done
+[oracle@otus12 taxi_2021_11_18]$ for i in {00..49}; sqlldr taxi/12345678@//127.0.0.1:1521/xepdb1 data=/mnt/taxi_2021_11_18/taxi_0000000000$i.csv control=/home/oracle/sqlldr_taxi.ctl log=/home/oracle/sqlldr_taxi_0000000000$i.log bad=/home/oracle/taxi_0000000000$i_bad.csv; done
 ```
 Размер таблицы taxi_trips > 11GB, количество строк около 30 миллионов:
 ```sql
