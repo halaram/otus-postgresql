@@ -17,11 +17,11 @@
 
 >Загрузить в неё данные (10 Гб)  
 
-С помощью gcsfuse примонтирован bucket с данными сета chicago_taxi_trips и загружены данные инструментом sqlldr:  
+- С помощью gcsfuse примонтирован bucket с данными сета chicago_taxi_trips и загружены данные инструментом sqlldr:  
 ```console
 [oracle@otus12 taxi_2021_11_18]$ for i in {00..49}; sqlldr taxi/12345678@//127.0.0.1:1521/xepdb1 data=/mnt/taxi_2021_11_18/taxi_0000000000$i.csv control=/home/oracle/sqlldr_taxi.ctl log=/home/oracle/sqlldr_taxi_0000000000$i.log bad=/home/oracle/taxi_0000000000$i_bad.csv; done
 ```
-Размер таблицы taxi_trips > 11GB, количество строк около 30 миллионов:
+- Размер таблицы taxi_trips > 11GB, количество строк около 30 миллионов:
 ```sql
 SQL> set timing on;
 
@@ -41,7 +41,7 @@ SQL> select count(*) from taxi_trips;
 
 Elapsed: 00:07:46.05
 ```
-Выполним sql-запрос с операциями группировки и сортировки для оценки скорости:
+- Выполним sql-запрос с операциями группировки и сортировки для оценки скорости:
 ```sql
 SQL> select payment_type, round(sum(tips)/sum(trip_total)*100, 0) + 0 as tips_percent, count(*) as c from taxi_trips group by payment_type order by 3;
 
