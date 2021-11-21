@@ -20,7 +20,7 @@
 ```console
 [oracle@otus12 taxi_2021_11_18]$ for i in {00..39}; do sqlldr taxi/12345678@//127.0.0.1:1521/xepdb1 data=/mnt/taxi_2021_11_18/taxi_0000000000$i.csv control=/home/oracle/sqlldr_taxi.ctl log=/home/oracle/sqlldr_taxi_0000000000$i.log bad=/home/oracle/taxi_0000000000$i_bad.csv; done
 ```
-- Основные настройки распределения памяти sga и pga:
+- Основные настройки выделения памяти sga и pga:
 ```sql
 SQL> show parameter sga;
 
@@ -171,7 +171,7 @@ Time: 455565.028 ms (07:35.565)
 ```
 - Повторим sql-запросы с операциями группировки и сортировки для оценки времени, выполненные в БД Oracle:
 ```sql
-taxi=# select payment_type, round(sum(tips)/sum(trip_total)*100, 0) + 0 as tips_percent, count(*) as c from taxi_trips group by payment_type order by 3;
+taxi=> select payment_type, round(sum(tips)/sum(trip_total)*100, 0) + 0 as tips_percent, count(*) as c from taxi_trips group by payment_type order by 3;
  payment_type | tips_percent |    c     
 --------------+--------------+----------
  Prepaid      |            0 |       76
@@ -186,9 +186,9 @@ taxi=# select payment_type, round(sum(tips)/sum(trip_total)*100, 0) + 0 as tips_
  Cash         |            0 | 15014269
 (10 rows)
 
-Time: 337405.848 ms (05:37.406)
+Time: 401984.224 ms (06:41.984)
 
-taxi=# select company, count(*) as c, sum(trip_seconds) as s_sec, sum(trip_miles) as s_mil from taxi_trips group by company order by 2;
+taxi=> select company, count(*) as c, sum(trip_seconds) as s_sec, sum(trip_miles) as s_mil from taxi_trips group by company order by 2;
                    company                    |    c    |   s_sec    |    s_mil    
 ----------------------------------------------+---------+------------+-------------
  2809 - 95474 C&D Cab Co Inc.                 |       1 |        540 |         1.5
@@ -204,7 +204,7 @@ taxi=# select company, count(*) as c, sum(trip_seconds) as s_sec, sum(trip_miles
  Taxi Affiliation Services                    | 7878710 | 6031986480 |  17136242.4
 (155 rows)
 
-Time: 337082.958 ms (05:37.083)
+Time: 406725.376 ms (06:46.725)
 ```
 >Описать что и как делали и с какими проблемами столкнулись
 - Попробуем применить настройки postgres (include = 'postgresql.add.conf'):
@@ -222,5 +222,40 @@ max_parallel_workers = 2
 ```
 - Повторим sql-запросы:
 ```sql
+taxi=> select payment_type, round(sum(tips)/sum(trip_total)*100, 0) + 0 as tips_percent, count(*) as c from taxi_trips group by payment_type order by 3;
+ payment_type | tips_percent |    c     
+--------------+--------------+----------
+ Prepaid      |            0 |       76
+ Way2ride     |           15 |       78
+ Pcard        |            3 |     5302
+ Dispute      |            0 |    14685
+ Mobile       |           15 |    32883
+ Prcard       |            1 |    41463
+ Unknown      |            2 |    68591
+ No Charge    |            3 |   131855
+ Credit Card  |           17 | 10714146
+ Cash         |            0 | 15014269
+(10 rows)
 
+Time: 401882.355 ms (06:41.882)
+
+taxi=> select company, count(*) as c, sum(trip_seconds) as s_sec, sum(trip_miles) as s_mil from taxi_trips group by company order by 2;
+                   company                    |    c    |   s_sec    |    s_mil    
+----------------------------------------------+---------+------------+-------------
+ 2809 - 95474 C&D Cab Co Inc.                 |       1 |        540 |         1.5
+ 3669 - Jordan Taxi Inc                       |       3 |          0 |           0
+ 0118 - Godfray S.Awir                        |       5 |       2760 |        10.8
+ American United Cab Association              |       5 |          0 |           0
+...
+ Northwest Management LLC                     |  732268 |  542881500 |   2160686.4
+ Choice Taxi Association                      | 1379440 | 1125522960 |   4952431.1
+ Blue Ribbon Taxi Association Inc.            | 1772906 | 1326451140 |    265605.1
+ Dispatch Taxi Affiliation                    | 2260433 | 1693494540 |   7334346.2
+                                              | 6772883 | 5551877584 | 33967146.42
+ Taxi Affiliation Services                    | 7878710 | 6031986480 |  17136242.4
+(155 rows)
+
+Time: 402528.730 ms (06:42.529)
 ```
+<b> Как видно настройки параметров памяти незначительно влияют на время выполнения sql-запрсов, в которых происходит seqscan таблицы taxi_trips.  
+Скорости загрузки данных и выполнения таких sql-запросов в БД Oracle и Postges примерно одинаковая и в основном зависит от производительности дисковой подсистемы.</b>
