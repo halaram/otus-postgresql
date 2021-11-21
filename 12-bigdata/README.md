@@ -207,3 +207,20 @@ taxi=# select company, count(*) as c, sum(trip_seconds) as s_sec, sum(trip_miles
 Time: 337082.958 ms (05:37.083)
 ```
 >Описать что и как делали и с какими проблемами столкнулись
+- Попробуем применить настройки postgres (include = 'postgresql.add.conf'):
+```console
+-bash-4.2$ cat postgresql.add.conf 
+max_connections = 10
+shared_buffers = 1136MB
+work_mem = 38MB
+effective_cache_size = 2GB
+maintenance_work_mem = 512MB
+max_worker_processes = 2
+max_parallel_workers = 2
+
+/usr/pgsql-14/bin/pg_ctl -D /var/lib/pgsql/14/data/ restart
+```
+- Повторим sql-запросы:
+```sql
+
+```
