@@ -14,12 +14,7 @@
 1 вариант:  
 >Создать индексы на БД, которые ускорят доступ к данным.  
 ```sql
-postgres=# create database stats;
-CREATE DATABASE
-postgres=# \c stats 
-You are now connected to database "stats" as user "postgres".
-stats=# create table tablei as select row_number() over() as id, * from pg_timezone_names;
-SELECT 1189
+
 ```
 В данном задании тренируются навыки:  
 определения узких мест  
@@ -184,5 +179,6 @@ left join aircrafts ac on f.aircraft_code = ac.aircraft_code;
 ```
 >Сделать комментарии на каждый запрос  
 >К работе приложить структуру таблиц, для которых выполнялись соединения  
-https://postgrespro.ru/docs/enterprise/11/apjs02
+https://postgrespro.ru/docs/enterprise/11/apjs02  
+
 >Придумайте 3 своих метрики на основе показанных представлений, отправьте их через ЛК, а так же поделитесь с коллегами в слаке
