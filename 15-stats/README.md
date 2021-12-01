@@ -56,6 +56,7 @@ demo=# update tickets set passenger_name_fts = to_tsvector(passenger_name);
 UPDATE 366733
 
 demo=# create index on tickets using gin (passenger_name_fts);
+CREATE INDEX
 
 demo=# explain select * from tickets where passenger_name_fts @@ to_tsquery('ivanov');
                                            QUERY PLAN
@@ -165,25 +166,24 @@ cross join seats s;
 Запрос возвращает имена timezone таблицы pg_timezone_names, в которых "отсутствуют аэропорты":
 ```sql
 demo=# explain
-select a.timezone, t.name
+select t.name
 from airports_data a
 full join pg_timezone_names t on a.timezone = t.name
 where a.timezone is null;
                                       QUERY PLAN                                       
 ---------------------------------------------------------------------------------------
- Hash Full Join  (cost=22.50..45.00 rows=1 width=47)
+ Hash Full Join  (cost=22.50..45.00 rows=1 width=32)
    Hash Cond: (a.timezone = pg_timezone_names.name)
    Filter: (a.timezone IS NULL)
    ->  Seq Scan on airports_data a  (cost=0.00..4.04 rows=104 width=15)
    ->  Hash  (cost=10.00..10.00 rows=1000 width=32)
          ->  Function Scan on pg_timezone_names  (cost=0.00..10.00 rows=1000 width=32)
-(6 rows)
 ```
 >Реализовать запрос, в котором будут использованы разные типы соединений  
 
 Выборка рейсов с городами отправления - прибытия и моделью самолёта:
 ```sql
-demo=# explain       
+demo=# explain
 select distinct arp.city, drp.city, ac.model
 from flights f
 inner join airports arp on f.arrival_airport = arp.airport_code
