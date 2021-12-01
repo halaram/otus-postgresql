@@ -215,3 +215,15 @@ https://postgrespro.ru/docs/enterprise/11/apjs02
 
 >Придумайте 3 своих метрики на основе показанных представлений, отправьте их через ЛК, а так же поделитесь с коллегами в слаке
 
+Неиспользуемые индексы:
+```sql
+demo=# select relname, indexrelname from pg_stat_user_indexes where idx_scan = 0;
+```
+Количество сессий, находящихся в статусе "idle in transaction":
+```sql
+demo=# select count(*) from pg_stat_activity where state = 'idle in transaction';
+```
+Коэффициент попадания запросов к пользовательским таблицам в кеш:
+```sql
+demo=# select (sum(heap_blks_hit) - sum(heap_blks_read)) / sum(heap_blks_hit) as ratio from pg_statio_user_tables;
+```
