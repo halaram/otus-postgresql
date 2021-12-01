@@ -12,9 +12,11 @@
 <b>Имя проекта - postgres2021-2147483647</b>
 
 1 вариант:  
->Создать индексы на БД, которые ускорят доступ к данным.  
+>Создать индексы на БД, которые ускорят доступ к данным.
+В ДЗ будет использваться демонстрационная база данных авиаперевозок по России от компании Postgre Pro.
+https://postgrespro.ru/education/demodb
 ```sql
-
+psql < demo-small-20170815.sql
 ```
 В данном задании тренируются навыки:  
 определения узких мест  
@@ -22,6 +24,7 @@
 оптимизации  
 Необходимо:  
 >Создать индекс к какой-либо из таблиц вашей БД  
+Создадим индекс для по полю arrival_airport - аэропорт прибытия:  
 ```sql
 demo=# create index on flights (arrival_airport);
 CREATE INDEX
@@ -41,12 +44,15 @@ demo=# drop index flights_arrival_airport_idx;
 DROP INDEX
 ```
 >Реализовать индекс для полнотекстового поиска  
+Для полнотекстового поиска по ФИО пассажира добавим поле passenger_name_fts с типом tsvector в таблицу tickets и индекс gin.  
 ```sql
 demo=# alter table tickets add column passenger_name_fts tsvector;
 ALTER TABLE
 
 demo=# update tickets set passenger_name_fts = to_tsvector(passenger_name);
 UPDATE 366733
+
+demo=# create index on tickets using gin (passenger_name_fts);
 
 demo=# explain select * from tickets where passenger_name_fts @@ to_tsquery('ivanov');
                                            QUERY PLAN
@@ -61,6 +67,7 @@ demo=# alter table tickets drop column passenger_name_fts;
 ALTER TABLE
 ```
 >Реализовать индекс на часть таблицы или индекс на поле с функцией
+Индекс для запроса записей бронирования билетов за сутки в часовом поясе UTC с IMMUTABLE функцией:
 ```sql
 demo=# create index on bookings (date(book_date at time zone 'UTC'));
 CREATE INDEX
@@ -79,6 +86,7 @@ demo=# drop index bookings_date_idx;
 DROP INDEX
 ```
 >Создать индекс на несколько полей  
+Индекс для выборки по классу обслуживания рейсов:
 ```sql
 demo=# create index on ticket_flights (flight_id, fare_conditions);
 CREATE INDEX
@@ -94,19 +102,20 @@ demo=# explain select count(*) from ticket_flights where flight_id = 30625 and f
 demo=# drop index ticket_flights_flight_id_fare_conditions_idx;
 DROP INDEX
 ```
->Написать комментарии к каждому из индексов  
->Описать что и как делали и с какими проблемами столкнулись  
 
 2 вариант:  
 В результате выполнения ДЗ вы научитесь пользоваться различными вариантами соединения таблиц. В данном задании тренируются навыки:  
 написания запросов с различными типами соединений  
 Необходимо:  
 >Реализовать прямое соединение двух или более таблиц  
+Выборка модели самолёта для рейсов:
 ```sql
-demo=# explain select f.flight_no, ad.model from flights f inner join aircrafts_data ad on ad.aircraft_code = f.aircraft_code;
-                                  QUERY PLAN
+demo=# explain
+select f.flight_no, ad.model ->> lang()
+from flights f inner join aircrafts_data ad on ad.aircraft_code = f.aircraft_code;
+                                  QUERY PLAN                                  
 ------------------------------------------------------------------------------
- Hash Join  (cost=1.20..852.30 rows=33121 width=39)
+ Hash Join  (cost=1.20..9215.35 rows=33121 width=39)
    Hash Cond: (f.aircraft_code = ad.aircraft_code)
    ->  Seq Scan on flights f  (cost=0.00..723.21 rows=33121 width=11)
    ->  Hash  (cost=1.09..1.09 rows=9 width=48)
@@ -114,9 +123,13 @@ demo=# explain select f.flight_no, ad.model from flights f inner join aircrafts_
 (5 rows)
 ```
 >Реализовать левостороннее (или правостороннее) соединение двух или более таблиц  
+Запрос возвращает ФИО пассажира, дату и полную сумма бронирования:
 ```sql
-demo=# explain select t.ticket_no, t.passenger_name, b.book_date, b.total_amount from tickets t left join bookings b on t.book_ref = b.book_ref;
-                                  QUERY PLAN
+demo=# explain
+select t.ticket_no, t.passenger_name, b.book_date, b.total_amount
+from tickets t
+left join bookings b on t.book_ref = b.book_ref;
+                                  QUERY PLAN                                   
 -------------------------------------------------------------------------------
  Hash Left Join  (cost=7586.73..26169.75 rows=366733 width=44)
    Hash Cond: (t.book_ref = b.book_ref)
@@ -126,8 +139,11 @@ demo=# explain select t.ticket_no, t.passenger_name, b.book_date, b.total_amount
 (5 rows)
 ```
 >Реализовать кросс соединение двух или более таблиц  
+Кросс соединение таблиц моделей самолётов c местами в салоне:
 ```sql
-demo=# explain select * from aircrafts a cross join seats s;
+demo=# explain
+select * from aircrafts a
+cross join seats s;
                                   QUERY PLAN
 ------------------------------------------------------------------------------
  Nested Loop  (cost=0.00..3216.02 rows=12051 width=67)
@@ -137,8 +153,13 @@ demo=# explain select * from aircrafts a cross join seats s;
 (4 rows)
 ```
 >Реализовать полное соединение двух или более таблиц  
+Запрос возвращает имена timezone таблицы pg_timezone_names, в которых "отсутствуют аэропорты":
 ```sql
-demo=# explain select a.timezone, t.name from airports_data a full join pg_timezone_names t on a.timezone = t.name where a.timezone is null;
+demo=# explain
+select a.timezone, t.name
+from airports_data a
+full join pg_timezone_names t on a.timezone = t.name
+where a.timezone is null;
                                       QUERY PLAN                                       
 ---------------------------------------------------------------------------------------
  Hash Full Join  (cost=22.50..45.00 rows=1 width=47)
@@ -150,6 +171,7 @@ demo=# explain select a.timezone, t.name from airports_data a full join pg_timez
 (6 rows)
 ```
 >Реализовать запрос, в котором будут использованы разные типы соединений  
+Выборка рейсов с городами отправления - прибытия и моделью самолёта:
 ```sql
 demo=# explain       
 select distinct arp.city, drp.city, ac.model
@@ -177,9 +199,9 @@ left join aircrafts ac on f.aircraft_code = ac.aircraft_code;
                      ->  Seq Scan on aircrafts_data ml_2  (cost=0.00..3.36 rows=9 width=48)
 (16 rows)
 ```
->Сделать комментарии на каждый запрос  
 >К работе приложить структуру таблиц, для которых выполнялись соединения  
 
 https://postgrespro.ru/docs/enterprise/11/apjs02  
 
 >Придумайте 3 своих метрики на основе показанных представлений, отправьте их через ЛК, а так же поделитесь с коллегами в слаке
+
