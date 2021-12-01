@@ -11,10 +11,11 @@
 
 <b>Имя проекта - postgres2021-2147483647</b>
 
-1 вариант:  
+#1 вариант:  
 >Создать индексы на БД, которые ускорят доступ к данным.
-В ДЗ будет использваться демонстрационная база данных авиаперевозок по России от компании Postgre Pro.
-https://postgrespro.ru/education/demodb
+
+В ДЗ будет использваться демонстрационная база данных авиаперевозок по России от компании Postgre Pro.  
+https://postgrespro.ru/education/demodb  
 ```sql
 psql < demo-small-20170815.sql
 ```
@@ -24,6 +25,7 @@ psql < demo-small-20170815.sql
 оптимизации  
 Необходимо:  
 >Создать индекс к какой-либо из таблиц вашей БД  
+
 Создадим индекс для по полю arrival_airport - аэропорт прибытия:  
 ```sql
 demo=# create index on flights (arrival_airport);
@@ -44,6 +46,7 @@ demo=# drop index flights_arrival_airport_idx;
 DROP INDEX
 ```
 >Реализовать индекс для полнотекстового поиска  
+
 Для полнотекстового поиска по ФИО пассажира добавим поле passenger_name_fts с типом tsvector в таблицу tickets и индекс gin.  
 ```sql
 demo=# alter table tickets add column passenger_name_fts tsvector;
@@ -67,6 +70,7 @@ demo=# alter table tickets drop column passenger_name_fts;
 ALTER TABLE
 ```
 >Реализовать индекс на часть таблицы или индекс на поле с функцией
+
 Индекс для запроса записей бронирования билетов за сутки в часовом поясе UTC с IMMUTABLE функцией:
 ```sql
 demo=# create index on bookings (date(book_date at time zone 'UTC'));
@@ -86,6 +90,7 @@ demo=# drop index bookings_date_idx;
 DROP INDEX
 ```
 >Создать индекс на несколько полей  
+
 Индекс для выборки по классу обслуживания рейсов:
 ```sql
 demo=# create index on ticket_flights (flight_id, fare_conditions);
@@ -103,11 +108,12 @@ demo=# drop index ticket_flights_flight_id_fare_conditions_idx;
 DROP INDEX
 ```
 
-2 вариант:  
+#2 вариант:  
 В результате выполнения ДЗ вы научитесь пользоваться различными вариантами соединения таблиц. В данном задании тренируются навыки:  
 написания запросов с различными типами соединений  
 Необходимо:  
 >Реализовать прямое соединение двух или более таблиц  
+
 Выборка модели самолёта для рейсов:
 ```sql
 demo=# explain
@@ -123,6 +129,7 @@ from flights f inner join aircrafts_data ad on ad.aircraft_code = f.aircraft_cod
 (5 rows)
 ```
 >Реализовать левостороннее (или правостороннее) соединение двух или более таблиц  
+
 Запрос возвращает ФИО пассажира, дату и полную сумма бронирования:
 ```sql
 demo=# explain
@@ -139,6 +146,7 @@ left join bookings b on t.book_ref = b.book_ref;
 (5 rows)
 ```
 >Реализовать кросс соединение двух или более таблиц  
+
 Кросс соединение таблиц моделей самолётов c местами в салоне:
 ```sql
 demo=# explain
@@ -153,6 +161,7 @@ cross join seats s;
 (4 rows)
 ```
 >Реализовать полное соединение двух или более таблиц  
+
 Запрос возвращает имена timezone таблицы pg_timezone_names, в которых "отсутствуют аэропорты":
 ```sql
 demo=# explain
@@ -171,6 +180,7 @@ where a.timezone is null;
 (6 rows)
 ```
 >Реализовать запрос, в котором будут использованы разные типы соединений  
+
 Выборка рейсов с городами отправления - прибытия и моделью самолёта:
 ```sql
 demo=# explain       
