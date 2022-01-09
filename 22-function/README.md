@@ -95,3 +95,61 @@ GROUP BY G.good_name;
 
 Витрина+триггер решают задачу получения отчета по продажам при изменении цены, но только для операций insert.  
 Изменения количества продаж (update) и отмены (delete) всё так же могут приводить к некорректным результатам в good_sum_mart. Например может быть отменена или изменена старая продажа, но уже по новой цене.  
+
+
+- Добавим новый вид товара:
+```sql
+otus=# INSERT INTO goods (goods_id, good_name, good_price) VALUES (3, 'Крупа гречневая', 50);
+INSERT 0 1
+```
+- Проведём продажу (insert) 2кг:
+```sql
+otus=# insert into sales (good_id, sales_qty) VALUES (3, 2);
+INSERT 0 1
+```
+- Пока всё нормально и с отчётом по "по требованию" и с витриной:
+```sql
+otus=# SELECT sum(G.good_price * S.sales_qty)
+FROM goods G
+INNER JOIN sales S ON S.good_id = G.goods_id WHERE G.good_name = 'Крупа гречневая' 
+GROUP BY G.good_name;
+  sum   
+--------
+ 100.00
+
+otus=# select sum_sale from good_sum_mart where good_name = 'Крупа гречневая';
+ sum_sale 
+----------
+   100.00
+```
+- Изменим цену, отчёт по требования возвращает "неправильный" итог 200, в витрине всё верно - 100:
+```sql
+otus=# update goods set good_price = 100 where good_name = 'Крупа гречневая';
+UPDATE 1
+
+otus=# select sum_sale from good_sum_mart where good_name = 'Крупа гречневая';
+ sum_sale 
+----------
+   100.00
+(1 row)
+
+otus=# SELECT sum(G.good_price * S.sales_qty)
+FROM goods G
+INNER JOIN sales S ON S.good_id = G.goods_id WHERE G.good_name = 'Крупа гречневая' 
+GROUP BY G.good_name;
+  sum   
+--------
+ 200.00
+```
+
+- Проведем возврат (delete), витрина cломалась:
+```sql
+otus=# delete from sales where sales_id = 5;
+DELETE 1
+
+otus=# select sum_sale from good_sum_mart where good_name = 'Крупа гречневая';
+ sum_sale 
+----------
+  -100.00
+(1 row)
+```
