@@ -1,0 +1,46 @@
+---
+- hosts: pg
+  become: true
+  tasks:
+
+  - name: Install EPEL Repo package from standard repo
+    yum:
+      name: epel-release
+      state: present
+
+  - name: Install PostgreSQL Yum Repository
+    yum:
+      name: https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+      state: present
+      validate_certs: no
+
+  - name: Install psycopg2 for ansible
+    yum:
+      state: present
+      name: python-psycopg2
+
+  - name: Install PostgreSQL server
+    yum:
+      name: postgresql14-server
+      state: present
+
+  - name: PostgreSQL initdb
+    become_user: postgres
+    command:
+      cmd: /usr/pgsql-14/bin/initdb -D /var/lib/pgsql/14/data
+      creates: /var/lib/pgsql/14/data/PG_VERSION
+
+  - name: Enable PostgreSQL server
+    systemd:
+      name: postgresql-14
+      state: started
+      enabled: yes
+
+  - name: Create otus database
+    postgresql_db:
+      name: otus
+
+  - name: Run dz SQL script
+    postgresql_query:
+      db: otus
+      path_to_script: /vagrant/hw_triggers-223066-703e15.txt
